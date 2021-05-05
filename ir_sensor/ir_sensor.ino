@@ -11,30 +11,23 @@ void setup(void) {
 
 void loop(void) {
 
-  if (count % 2 == 0) {
-    digitalWrite(13, HIGH);
-    Serial.println("on");
-    int tl = analogRead(A1);
-    int bl = analogRead(A2);
-    int tr = analogRead(A3);
-    int br = analogRead(A4);
+  digitalWrite(13, HIGH);
+  Serial.println("on");
+  int tl = analogRead(A1);
+  int bl = analogRead(A2);
+  int tr = analogRead(A3);
+  int br = analogRead(A4);
 
-    int topLeft = (6762/(tl-9))-4;
-    int botLeft = (6762/bl-9))-4;
-    int topRight = (6762/(tr-9))-4;
-    int botRight = (6762/(br-9))-4;
+  int topLeft = (6762/(tl-9))-4;
+  int botLeft = (6762/bl-9))-4;
+  int topRight = (6762/(tr-9))-4;
+  int botRight = (6762/(br-9))-4;
 
-    int tl_br = fullDiagonal - topLeft - bottomRight;
-    int tr_bl = fullDiagonal - topRight - bottomLeft
+  int tl_br = (fullDiagonal - topLeft - bottomRight)/fullDiagonal;
+  int tr_bl = (fullDiagonal - topRight - bottomLeft)/fullDiagonal;
+  float percentage = 100.0.0 * ((tl_br + tr_bl)/2);
+
+  print("%f",percentage);
   
-    Serial.println(calculated);
-  
-    sprintf(cmstring, "%3d", calculated);
-  } else {
-    digitalWrite(13, LOW);
-  }
-  
-  
-//  count++;
   delay(1000);
 }
