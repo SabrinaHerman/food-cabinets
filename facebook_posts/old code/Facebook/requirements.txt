@@ -1,0 +1,7 @@
+chromedriver_py
+from chromedriver_py import binary_path # this will get you the path variable
+
+webdriver.Chrome(executable_path=binary_path)
+#Chrome webdriver
+selenium==2.53.6
+time==1.144
