@@ -15,6 +15,8 @@
 HX711 scale;
 Adafruit_LSM6DSOX sox;
 int run_lc = 0;
+int reading_num;
+int c;
 
 void setup() {
   Serial.begin(115200);
@@ -94,6 +96,19 @@ void setup() {
   scale.tare();	//Assuming there is no weight on the scale at start up, reset the scale to 0
 }
 
+//int av_load_data(){
+//  int s;
+//  int i = 1;
+//  int tot;
+//  while (i < 30){
+//    s = scale.get_units();
+//    tot = tot+s;
+//    i++;
+//  }
+//  tot = tot/30;
+//  return tot;
+//}
+
 void loop() {
 
   // -------- Accelerometer ----------
@@ -110,17 +125,45 @@ void loop() {
   int threshz = 10;
 
   // if acceleration is detected, trigger load cell readings
-  if(z > threshz || z < -threshz) {
-    Serial.print("z: ");Serial.print(accel.acceleration.z);
+  if((z > threshz || z < -threshz) && reading_num == 0) {
+    Serial.print("Accelerometer Motion Detected!");
     Serial.println();
     run_lc = 1;
   }
 
   // ---------- Load Cells ------------------
+  
   if (run_lc) {
-    Serial.print("Reading: ");
-    Serial.print(scale.get_units(), 1); //scale.get_units() returns a float
-    Serial.print(" lbs"); //You can change this to kg but you'll need to refactor the calibration_factor
-    Serial.println();
-  }
+    int s;
+    c++;
+
+    // get initial load cell reading
+    if (reading_num == 0) {
+      Serial.print("Initial scale reading: ");
+      s = scale.get_units();
+      Serial.print(s, 1); //scale.get_units() returns a float
+      Serial.print(" lbs"); //You can change this to kg but you'll need to refactor the calibration_factor
+      Serial.println();
+      reading_num = 1;
+      Serial.println("Wait for timeout period...");
+    }
+   
+    // get final load cell reading
+     if(c > 1000){
+      
+      Serial.println("Timeout period over!");
+      Serial.print("Final scale reading: ");
+      s = scale.get_units();
+      Serial.print(s, 1); //scale.get_units() returns a float
+      Serial.print(" lbs"); //You can change this to kg but you'll need to refactor the calibration_factor
+      Serial.println();
+      reading_num = 2;
+     }
+
+     // stop reading load cells
+     if(reading_num == 2){
+      run_lc = 0;
+     }
+  } //end running load cells
+  
 }
