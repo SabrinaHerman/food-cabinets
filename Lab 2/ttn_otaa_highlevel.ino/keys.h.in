@@ -1,0 +1,7 @@
+#include "stdint.h"
+#ifndef KEYS_H
+#define KEYS_H
+const uint8_t PROGMEM APPEUI[8] = { FILLMEIN };
+const uint8_t PROGMEM DEVEUI[8]= { FILLMEIN };
+const uint8_t PROGMEM APPKEY[16]= { FILLMEIN };
+#endif

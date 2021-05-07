@@ -18,6 +18,19 @@ int run_lc = 0;
 int reading_num;
 int c;
 
+float fullDiagonal = 32 * 2.54; // distance from front bottom left corner to the back top right corner of the shelf (conversion from in to cm)
+int tl;
+int bl;
+int tr;
+int br;
+int topLeft;
+int botLeft;
+int topRight;
+int botRight;
+int tl_br;
+int tr_bl;
+float percentage;
+
 void setup() {
   Serial.begin(115200);
 
@@ -164,6 +177,24 @@ void loop() {
      if(reading_num == 2){
       run_lc = 0;
      }
-  } //end running load cells
+
+     // start reading IR sensors
+     tl = analogRead(A1);
+     bl = analogRead(A2);
+     tr = analogRead(A3);
+     br = analogRead(A4);
+      
+     topLeft = (6762/(tl-9))-4;
+     botLeft = (6762/(bl-9))-4;
+     topRight = (6762/(tr-9))-4;
+     botRight = (6762/(br-9))-4;
+      
+     tl_br = (fullDiagonal - topLeft - botRight)/fullDiagonal;
+     tr_bl = (fullDiagonal - topRight - botLeft)/fullDiagonal;
+     percentage = 100.0 * ((tl_br + tr_bl)/2);
+      
+     Serial.print("Percentage filled: ");
+     Serial.println(percentage);
+  } //end running load cells and IR sensors
   
 }
