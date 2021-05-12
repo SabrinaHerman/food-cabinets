@@ -19,9 +19,9 @@ Adafruit_LSM6DSOX sox;
 #define LOADCELL_DOUT_PIN  11
 #define LOADCELL_SCK_PIN  12
 
-int run_lc = 0;
-int state;
-int c;
+int read_sensors = 0;
+int c = 0;
+int s = 0;
 
 // IR Variables
 float fullDiagonal = 32 * 2.54; // distance from front bottom left corner to the back top right corner of the shelf (conversion from in to cm)
@@ -90,27 +90,32 @@ const cMyLoRaWAN::lmic_pinmap myPinMap = {
 
 void setup() {
   Serial.begin(115200);
+  pinMode(13, OUTPUT);    
+  digitalWrite(13, LOW);
+  int read_sensors = 0;
+  int c = 0;
+  
 
   // ----------------- FRAM -------------------------------------------------------------------------------------------------------
-  int b = FRAM.begin();
-  delay(3000);
-  if (b) {  // you can stick the new i2c addr in here, e.g. begin(0x51);
-    Serial.println("Found I2C FRAM");
-  } else {
-    Serial.println("I2C FRAM not identified ... check your connections?\r\n");
-    Serial.println("Will continue in case this processor doesn't support repeated start\r\n");
-  }
+//  int b = FRAM.begin();
+//  delay(3000);
+//  if (b) {  // you can stick the new i2c addr in here, e.g. begin(0x51);
+//    Serial.println("Found I2C FRAM");
+//  } else {
+//    Serial.println("I2C FRAM not identified ... check your connections?\r\n");
+//    Serial.println("Will continue in case this processor doesn't support repeated start\r\n");
+//  }
 
   // ------------- LORAWAN --------------------------------------------------------------------------------------------------------
-  while (!Serial);
-  myLoRaWAN.begin(myPinMap);
-  lastTime = millis();
-  Serial.println("Serial begin");
-  if (myLoRaWAN.IsProvisioned())
-    Serial.println("Provisioned for something");
-  else
-    Serial.println("Not provisioned.");
-  myLoRaWAN.SendBuffer(messageBuffer, 4, myStatusCallback, NULL, false, 1);
+//  while (!Serial);
+//  myLoRaWAN.begin(myPinMap);
+//  lastTime = millis();
+//  Serial.println("Serial begin");
+//  if (myLoRaWAN.IsProvisioned())
+//    Serial.println("Provisioned for something");
+//  else
+//    Serial.println("Not provisioned.");
+//  myLoRaWAN.SendBuffer(messageBuffer, 4, myStatusCallback, NULL, false, 1);
 
 
   // ---------- Accelerometer -----------------------------------------------------------------------------------------------------
@@ -177,6 +182,8 @@ void setup() {
     break;
   }
 
+     
+  digitalWrite(13, HIGH);
   // --------- Load Cells -----------------------------------------------------------------------------------------------------------
   Serial.println("HX711 scale demo");
 
@@ -184,11 +191,14 @@ void setup() {
   scale.set_scale(calibration_factor); //This value is obtained by using the SparkFun_HX711_Calibration sketch
   //scale.set_offset(zero_factor); //Zero out the scale using a previously known zero_factor
   scale.tare();  //Assuming there is no weight on the scale at start up, reset the scale to 0
+  
+  digitalWrite(13, LOW);
+
 }
 
 
 void loop() {
-  myLoRaWAN.loop();
+//  myLoRaWAN.loop();
 
   // -------- Accelerometer ----------------------------------------------------------------------------------------------------------
   
@@ -203,79 +213,119 @@ void loop() {
   int z = accel.acceleration.z;  
   int threshz = 10;
 
-  // if acceleration is detected, trigger load cell readings
-  if((z > threshz || z < -threshz) && state == 0) {
+//  Serial.println(z);
+//  Serial.println(read_sensors);
+//  Serial.println((z > threshz || z < -threshz) && !read_sensors);
+
+  // if acceleration is detected and not reading sensors, trigger readings
+  if((z > threshz || z < -threshz) && !read_sensors) {
     Serial.print("Accelerometer Motion Detected!");
     Serial.println();
-    run_lc = 1;
+    read_sensors = 1;
   }
 
-    // ---------- Load Cells & IR Sensors --------------------------------------------------------------------------------------------
+  // ---------- Load Cells & IR Sensors --------------------------------------------------------------------------------------------
   
-  if (run_lc) {
-    int s;
-    c++;
+  // start reading sensors
+  if (read_sensors) {
+    digitalWrite(13, HIGH);
 
-    // get initial load cell reading
-    if (state == 0) {
+    // Get initial reading
+    if (c == 0) {
       Serial.print("Initial scale reading: ");
       s = scale.get_units();
       Serial.print(s, 1); //scale.get_units() returns a float
-      Serial.print(" lbs"); //You can change this to kg but you'll need to refactor the calibration_factor
+      Serial.print(" lbs");
       Serial.println();
-      state = 1;
+
+      // Reading IR sensors
+      tl = analogRead(A1);
+      bl = analogRead(A2);
+      tr = analogRead(A3);
+      br = analogRead(A4);
+
+      
+      Serial.println("IR sensor readings: ");
+      Serial.println(tl);
+      Serial.println(bl);
+      Serial.println(tr);
+      Serial.println(br);
+       
+      topLeft = (6762/(tl-9))-4;
+      botLeft = (6762/(bl-9))-4;
+      topRight = (6762/(tr-9))-4;
+      botRight = (6762/(br-9))-4;
+
+      Serial.println("IR sensor calcs: ");
+      Serial.println(topLeft);
+      Serial.println(botLeft);
+      Serial.println(topRight);
+      Serial.println(botRight);
+        
+      tl_br = (fullDiagonal - topLeft - botRight)/fullDiagonal;
+      tr_bl = (fullDiagonal - topRight - botLeft)/fullDiagonal;
+      percentage = 100.0 * ((tl_br + tr_bl)/2);
+
+      Serial.println("IR sensor calc pt2: ");
+      Serial.println(tl_br);
+      Serial.println(tr_bl);
+        
+      Serial.print("Initial percentage filled: ");
+      Serial.println(percentage);
       Serial.println("Wait for timeout period...");
     }
+
+    // increment counter
+    c++;
    
-    // get final load cell reading
-     if(c > 1000){
-      
+    // If time is up, get final readings
+    if(c > 1000){
       Serial.println("Timeout period over!");
+
+      // Read Load cells
       Serial.print("Final scale reading: ");
       s = scale.get_units();
       Serial.print(s, 1); //scale.get_units() returns a float
-      Serial.print(" lbs"); //You can change this to kg but you'll need to refactor the calibration_factor
+      Serial.print(" lbs");
       Serial.println();
-      state = 2;
-     }
 
-     // stop reading load cells
-     if(state == 2){
-      run_lc = 0;
-     }
+      // Reading IR sensors
+      tl = analogRead(A1);
+      bl = analogRead(A2);
+      tr = analogRead(A3);
+      br = analogRead(A4);
+       
+      topLeft = 29.988*pow(tl,-1.173);
+      botLeft = 29.988*pow(bl,-1.173);
+      topRight = 29.988*pow(tr,-1.173);
+      botRight = 29.988*pow(br,-1.173);
+        
+      tl_br = (fullDiagonal - topLeft - botRight)/fullDiagonal;
+      tr_bl = (fullDiagonal - topRight - botLeft)/fullDiagonal;
+      percentage = 100.0 * ((tl_br + tr_bl)/2);
+        
+      Serial.print("Final percentage filled: ");
+      Serial.println(percentage);
 
-     // start reading IR sensors
-     tl = analogRead(A1);
-     bl = analogRead(A2);
-     tr = analogRead(A3);
-     br = analogRead(A4);
-      
-     topLeft = (6762/(tl-9))-4;
-     botLeft = (6762/(bl-9))-4;
-     topRight = (6762/(tr-9))-4;
-     botRight = (6762/(br-9))-4;
-      
-     tl_br = (fullDiagonal - topLeft - botRight)/fullDiagonal;
-     tr_bl = (fullDiagonal - topRight - botLeft)/fullDiagonal;
-     percentage = 100.0 * ((tl_br + tr_bl)/2);
-      
-     Serial.print("Percentage filled: ");
-     Serial.println(percentage);
-  } //end running load cells and IR sensors
+
+      // ---------- Send Network Data --------------------------------------------------------------------------------------------
   
-}
-  // if we finished running load cells & IR sensors
-  if (state == 2 && run_lc == 0) {
-    
-    int datasave1 = s; // load cell data
-    int datasave2 = percentage; // IR sensor 
-    messageBuffer[0]++;
-    messageBuffer[1] = datasave1;
-    messageBuffer[2] = datasave2;
-    myLoRaWAN.SendBuffer(messageBuffer, 4, myStatusCallback, NULL, false, 1);
-    lastTime = millis();
-  }
-}
+//      int datasave1 = s; // load cell data
+//      int datasave2 = percentage; // IR sensor 
+//      messageBuffer[0]++;
+//      messageBuffer[1] = datasave1;
+//      messageBuffer[2] = datasave2;
+//      myLoRaWAN.SendBuffer(messageBuffer, 4, myStatusCallback, NULL, false, 1);
+//      lastTime = millis();
+
+      // reset
+      read_sensors = 0;
+      c = 0;
+      digitalWrite(13, LOW);
+    }
+  } //end reading sensors
+  
+} //end loop
 
 
 // ---------- LORAWAN & FRAM LAB STUFF -----------------------------------------------------------------------------------------------

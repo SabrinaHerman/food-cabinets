@@ -98,6 +98,9 @@ void setup() {
     break;
   }
 
+  
+  pinMode(13, OUTPUT);    
+  digitalWrite(13, LOW);
 
 
   // --------- Load Cells -------------------
@@ -136,7 +139,7 @@ void loop() {
   delayMicroseconds(10000);
   int z = accel.acceleration.z;  
   int threshz = 10;
-
+  
   // if acceleration is detected, trigger load cell readings
   if((z > threshz || z < -threshz) && reading_num == 0) {
     Serial.print("Accelerometer Motion Detected!");
@@ -177,24 +180,24 @@ void loop() {
      if(reading_num == 2){
       run_lc = 0;
      }
-
-     // start reading IR sensors
-     tl = analogRead(A1);
-     bl = analogRead(A2);
-     tr = analogRead(A3);
-     br = analogRead(A4);
-      
-     topLeft = (6762/(tl-9))-4;
-     botLeft = (6762/(bl-9))-4;
-     topRight = (6762/(tr-9))-4;
-     botRight = (6762/(br-9))-4;
-      
-     tl_br = (fullDiagonal - topLeft - botRight)/fullDiagonal;
-     tr_bl = (fullDiagonal - topRight - botLeft)/fullDiagonal;
-     percentage = 100.0 * ((tl_br + tr_bl)/2);
-      
-     Serial.print("Percentage filled: ");
-     Serial.println(percentage);
+//
+//     // start reading IR sensors
+//     tl = analogRead(A1);
+//     bl = analogRead(A2);
+//     tr = analogRead(A3);
+//     br = analogRead(A4);
+//      
+//     topLeft = (6762/(tl-9))-4;
+//     botLeft = (6762/(bl-9))-4;
+//     topRight = (6762/(tr-9))-4;
+//     botRight = (6762/(br-9))-4;
+//      
+//     tl_br = (fullDiagonal - topLeft - botRight)/fullDiagonal;
+//     tr_bl = (fullDiagonal - topRight - botLeft)/fullDiagonal;
+//     percentage = 100.0 * ((tl_br + tr_bl)/2);
+//      
+//     Serial.print("Percentage filled: ");
+//     Serial.println(percentage);
   } //end running load cells and IR sensors
   
 }
