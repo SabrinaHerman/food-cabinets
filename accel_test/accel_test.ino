@@ -85,11 +85,11 @@ void loop() {
   sensors_event_t temp;
   sox.getEvent(&accel, &gyro, &temp);
 
-   //Get Data
-//  Serial.print(accel.acceleration.x);
-//  Serial.print(","); Serial.print(accel.acceleration.y);
-//  Serial.print(","); Serial.print(accel.acceleration.z);
-//  Serial.println();
+   // Get Data
+  Serial.print(accel.acceleration.x);
+  Serial.print(","); Serial.print(accel.acceleration.y);
+  Serial.print(","); Serial.print(accel.acceleration.z);
+  Serial.println();
 
 
   // Only print if meets threshhold
@@ -101,6 +101,8 @@ void loop() {
   
   int threshxy = 10;
   int threshz = 0.8;
+
+  // highlight below region and hit CTRL + / to comment/uncomment
   
 //  if(x > threshxy || x < -threshxy) {
 //    Serial.print("x: ");Serial.print(accel.acceleration.x);
@@ -110,10 +112,10 @@ void loop() {
 //    Serial.print("y: ");Serial.print(accel.acceleration.y);
 //    Serial.println();
 //  }
-  if(z > threshz || z < -threshz) {
-    Serial.print("z: ");Serial.print(accel.acceleration.z);
-    Serial.println();
-  }
+//  if(z > threshz || z < -threshz) {
+//    Serial.print("z: ");Serial.print(accel.acceleration.z);
+//    Serial.println();
+//  }
   
 
 }

@@ -97,25 +97,25 @@ void setup() {
   
 
   // ----------------- FRAM -------------------------------------------------------------------------------------------------------
-//  int b = FRAM.begin();
-//  delay(3000);
-//  if (b) {  // you can stick the new i2c addr in here, e.g. begin(0x51);
-//    Serial.println("Found I2C FRAM");
-//  } else {
-//    Serial.println("I2C FRAM not identified ... check your connections?\r\n");
-//    Serial.println("Will continue in case this processor doesn't support repeated start\r\n");
-//  }
+  int b = FRAM.begin();
+  delay(3000);
+  if (b) {  // you can stick the new i2c addr in here, e.g. begin(0x51);
+    Serial.println("Found I2C FRAM");
+  } else {
+    Serial.println("I2C FRAM not identified ... check your connections?\r\n");
+    Serial.println("Will continue in case this processor doesn't support repeated start\r\n");
+  }
 
   // ------------- LORAWAN --------------------------------------------------------------------------------------------------------
-//  while (!Serial);
-//  myLoRaWAN.begin(myPinMap);
-//  lastTime = millis();
-//  Serial.println("Serial begin");
-//  if (myLoRaWAN.IsProvisioned())
-//    Serial.println("Provisioned for something");
-//  else
-//    Serial.println("Not provisioned.");
-//  myLoRaWAN.SendBuffer(messageBuffer, 4, myStatusCallback, NULL, false, 1);
+  while (!Serial);
+  myLoRaWAN.begin(myPinMap);
+  lastTime = millis();
+  Serial.println("Serial begin");
+  if (myLoRaWAN.IsProvisioned())
+    Serial.println("Provisioned for something");
+  else
+    Serial.println("Not provisioned.");
+  myLoRaWAN.SendBuffer(messageBuffer, 4, myStatusCallback, NULL, false, 1);
 
 
   // ---------- Accelerometer -----------------------------------------------------------------------------------------------------
@@ -184,6 +184,7 @@ void setup() {
 
      
   digitalWrite(13, HIGH);
+  delay(40);
   // --------- Load Cells -----------------------------------------------------------------------------------------------------------
   Serial.println("HX711 scale demo");
 
@@ -198,7 +199,7 @@ void setup() {
 
 
 void loop() {
-//  myLoRaWAN.loop();
+  myLoRaWAN.loop();
 
   // -------- Accelerometer ----------------------------------------------------------------------------------------------------------
   
@@ -245,33 +246,36 @@ void loop() {
       br = analogRead(A4);
 
       
-      Serial.println("IR sensor readings: ");
-      Serial.println(tl);
-      Serial.println(bl);
-      Serial.println(tr);
-      Serial.println(br);
-       
+//      Serial.println("IR sensor readings: ");
+//      Serial.println(tl);
+//      Serial.println(bl);
+//      Serial.println(tr);
+//      Serial.println(br);
+//       
       topLeft = (6762/(tl-9))-4;
       botLeft = (6762/(bl-9))-4;
       topRight = (6762/(tr-9))-4;
       botRight = (6762/(br-9))-4;
 
-      Serial.println("IR sensor calcs: ");
-      Serial.println(topLeft);
-      Serial.println(botLeft);
-      Serial.println(topRight);
-      Serial.println(botRight);
-        
-      tl_br = (fullDiagonal - topLeft - botRight)/fullDiagonal;
-      tr_bl = (fullDiagonal - topRight - botLeft)/fullDiagonal;
-      percentage = 100.0 * ((tl_br + tr_bl)/2);
-
-      Serial.println("IR sensor calc pt2: ");
-      Serial.println(tl_br);
-      Serial.println(tr_bl);
-        
       Serial.print("Initial percentage filled: ");
-      Serial.println(percentage);
+      Serial.println(topLeft);
+
+//      Serial.println("IR sensor calcs: ");
+//      Serial.println(topLeft);
+//      Serial.println(botLeft);
+//      Serial.println(topRight);
+//      Serial.println(botRight);
+        
+//      tl_br = (fullDiagonal - topLeft - botRight)/fullDiagonal;
+//      tr_bl = (fullDiagonal - topRight - botLeft)/fullDiagonal;
+//      percentage = 100.0 * ((tl_br + tr_bl)/2);
+//
+//      Serial.println("IR sensor calc pt2: ");
+//      Serial.println(tl_br);
+//      Serial.println(tr_bl);
+//        
+//      Serial.print("Initial percentage filled: ");
+//      Serial.println(percentage);
       Serial.println("Wait for timeout period...");
     }
 
@@ -299,23 +303,39 @@ void loop() {
       botLeft = 29.988*pow(bl,-1.173);
       topRight = 29.988*pow(tr,-1.173);
       botRight = 29.988*pow(br,-1.173);
-        
-      tl_br = (fullDiagonal - topLeft - botRight)/fullDiagonal;
-      tr_bl = (fullDiagonal - topRight - botLeft)/fullDiagonal;
-      percentage = 100.0 * ((tl_br + tr_bl)/2);
-        
+
+      topLeft = (6762/(tl-9))-4;
+      botLeft = (6762/(bl-9))-4;
+      topRight = (6762/(tr-9))-4;
+      botRight = (6762/(br-9))-4;
+
+      
       Serial.print("Final percentage filled: ");
-      Serial.println(percentage);
+      Serial.println(topLeft);
+
+      
+//      Serial.println("IR sensor calcs: ");
+//      Serial.println(topLeft);
+//      Serial.println(botLeft);
+//      Serial.println(topRight);
+//      Serial.println(botRight);
+//        
+//      tl_br = (fullDiagonal - topLeft - botRight)/fullDiagonal;
+//      tr_bl = (fullDiagonal - topRight - botLeft)/fullDiagonal;
+//      percentage = 100.0 * ((tl_br + tr_bl)/2);
+//        
+//      Serial.print("Final percentage filled: ");
+//      Serial.println(percentage);
 
 
       // ---------- Send Network Data --------------------------------------------------------------------------------------------
   
-//      int datasave1 = s; // load cell data
-//      int datasave2 = percentage; // IR sensor 
-//      messageBuffer[0]++;
-//      messageBuffer[1] = datasave1;
-//      messageBuffer[2] = datasave2;
-//      myLoRaWAN.SendBuffer(messageBuffer, 4, myStatusCallback, NULL, false, 1);
+      int datasave1 = s; // load cell data
+      int datasave2 = topLeft; // IR sensor 
+      messageBuffer[0]++;
+      messageBuffer[1] = datasave1;
+      messageBuffer[2] = datasave2;
+      myLoRaWAN.SendBuffer(messageBuffer, 4, myStatusCallback, NULL, false, 1);
 //      lastTime = millis();
 
       // reset
